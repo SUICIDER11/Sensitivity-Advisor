@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AXIS · Universal FPS Sensitivity Lab</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0b111a;
+    --panel: #131e2c;
+    --muted: #91a3ba;
+    --accent: #71f0c2
+  }
+
+  * {
+    box-sizing: border-box
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: #edf4ff;
+    font: 15px/1.65 system-ui, "Microsoft Yahei", sans-serif
+  }
+
+  main {
+    max-width: 1180px;
+    margin: auto;
+    padding: 32px 24px
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+  }
+
+  small,
+  .muted {
+    color: var(--muted)
+  }
+
+  h1 {
+    font-size: clamp(28px, 4vw, 46px);
+    line-height: 1.2;
+    margin: 22px 0 12px
+  }
+
+  h2 {
+    font-size: 19px;
+    margin: 0 0 16px
+  }
+
+  .tag {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent)
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+    margin-top: 28px
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid #29384c;
+    border-radius: 16px;
+    padding: 24px
+  }
+
+  label {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 15px
+  }
+
+  input,
+  select {
+    display: block;
+    width: 100%;
+    background: #0c1420;
+    border: 1px solid #36465c;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    font: inherit
+  }
+
+  button {
+    background: var(--accent);
+    color: #071e19;
+    border: 0;
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    margin: 8px 6px 0 0
+  }
+
+  button.secondary {
+    background: #25364b;
+    color: #e8f1ff
+  }
+
+  button:disabled {
+    opacity: .4;
+    cursor: default
+  }
+
+  .metrics {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap
+  }
+
+  .metrics b {
+    font-size: 30px;
+    display: block
+  }
+
+  .stage {
+    position: relative;
+    margin-top: 20px;
+    height: 430px;
+    background: #09131f;
+    border: 1px solid #304257;
+    border-radius: 12px;
+    overflow: hidden
+  }
+
+  .stage canvas {
+    width: 100%;
+    height: 100%;
+    display: block
+  }
+
+  .stage:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0
+  }
+
+  #hud {
+    position: absolute;
+    left: 18px;
+    top: 12px;
+    pointer-events: none;
+    background: #09131fcc;
+    padding: 6px 12px;
+    border-radius: 8px
+  }
+
+  #overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: #09131fbd;
+    padding: 24px;
+    pointer-events: none
+  }
+
+  #overlay div {
+    max-width: 450px
+  }
+
+  #overlay strong {
+    font-size: 25px
+  }
+
+  #status {
+    color: var(--accent);
+    min-height: 28px
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px
+  }
+
+  td,
+  th {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #2c3a4c
+  }
+
+  .value {
+    color: var(--accent);
+    font-size: 58px;
+    font-weight: 800;
+    line-height: 1.2
+  }
+
+  .notice {
+    border-left: 3px solid var(--accent);
+    padding-left: 14px;
+    color: #b2c2d7;
+    margin: 20px 0
+  }
+
+  .footer {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 26px
+  }
+
+  a {
+    color: var(--accent)
+  }
+
+  details {
+    margin-top: 16px
+  }
+
+  #result {
+    margin-top: 20px
+  }
+
+  @media(max-width:850px) {
+    .grid {
+      grid-template-columns: 1fr
+    }
+
+    .stage {
+      height: 360px
+    }
+
+    main {
+      padding: 20px 14px
+    }
+  }
+</style>
+<main>
+  <header><b>AXIS <span class="tag">/ UNIVERSAL FPS LAB</span></b><small>Offline · Mouse Sensitivity Personalizer</small></header>
+  <h1>One DPI setting<br>Personalized game sensitivity</h1>
+  <p class="muted">Test your flicks, precision and tracking to get a personalized sensitivity setting</p>
+  <div class="grid">
+    <aside class="card">
+      <h2>01 / Your starting point</h2><label>Find your game<input id="gameQuery" type="search"
+          placeholder="Game title, e.g. Counter-Strike"></label><button type="button" id="onlineGame">Search</button>
+      <div id="gameMatches"></div><small id="gameStatus" role="status">Choose a preset below, or search Wikidata
+        online.</small>
+      <p id="chosenGame">Selected game: all presets</p><label>Mouse DPI<input id="dpi" type="number" min="100"
+          max="32000" value="800"></label><label>Starting method<select id="method">
+          <option value="direct">Enter cm/360° directly</option>
+          <option value="average">Average my game settings</option>
+        </select></label>
+      <div id="direct"><label>Baseline cm/360°<input id="cm" type="number" min="5" max="150" value="40"
+            step="0.1"></label><small>40 cm is an editable starting point, not a claimed player average.</small></div>
+      <div id="average" hidden>
+        <p class="muted">Enter your actual hipfire settings. Blank fields are ignored. Use the same DPI in each game.
+        </p><label>CS2 sensitivity<input id="cs" type="number" min="0.001" step="0.001"
+            placeholder="e.g. 1.300"></label><label>VALORANT sensitivity<input id="val" type="number" min="0.01"
+            max="10" step="0.001" placeholder="e.g. 0.400"></label><label>CoD MW / Warzone mouse sensitivity<input
+            id="cod" type="number" min="0.001" step="0.001" placeholder="e.g. 4.300"></label><small>Equal-weight
+          arithmetic mean of the entered cm/360° distances; never an average of incompatible slider numbers.</small>
+      </div><label>Aiming style<select id="style">
+          <option value="balanced">Wrist + arm</option>
+          <option value="wrist">Mostly wrist</option>
+          <option value="arm">Mostly arm</option>
+        </select></label><label>Task preference<select id="priority">
+          <option value="balanced">Balanced FPS mix</option>
+          <option value="micro">Precision / tactical FPS</option>
+          <option value="flick">Flicks / fast target switching</option>
+          <option value="track">Tracking / movement shooters</option>
+        </select></label><label>Usable horizontal mouse space (cm)<input id="pad" type="number" min="10" max="150"
+          value="40"></label><label>Seconds per round<select id="duration">
+          <option value="15">15 · Quick</option>
+          <option value="30" selected>30 · Recommended</option>
+          <option value="45">45 · Extended</option>
+        </select></label><label>Test Area FOV (degrees)<input id="fov" type="number" min="70" max="120"
+          value="103"></label>
+      <h2 style="margin-top:24px">Mouse acceleration</h2><label>Acceleration mode<select id="accelMode">
+          <option value="off">Off · constant sensitivity</option>
+          <option value="linear">Linear · faster motion, higher gain</option>
+        </select></label><label>Start speed (cm/s)<input id="accelThreshold" type="number" min="0" max="300" value="10"
+          step="1"></label><label>Gain increase per cm/s above start<input id="accelRate" type="number" min="0" max="1"
+          value="0.02" step="0.005"></label><label>Maximum multiplier<input id="accelCap" type="number" min="1" max="5"
+          value="2" step="0.1"></label><svg id="accelCurve" viewBox="0 0 260 130"
+        style="width:100%;height:130px;margin-top:12px" aria-label="Acceleration multiplier versus mouse speed"></svg>
+      <p id="accelReadout" class="muted">0.0 cm/s · ×1.00 gain</p><small>Applied inside this trainer only. Disable
+        external acceleration to avoid stacking curves. Calibration always uses movement before this
+        curve.</small><button id="setup">Build my test</button><button id="reset" class="secondary">Reset
+        session</button>
+      <p class="muted">Keep DPI, acceleration, zoom, window size and FOV unchanged during testing. Esc pauses. Use a
+        desktop browser and a real mouse.</p>
+    </aside>
+    <section>
+      <div class="card">
+        <h2>02 / Calibrate, then compare</h2><label>Mouse input mode<select id="inputMode">
+            <option value="cursor">Visible cursor · compatibility mode</option>
+            <option value="locked" selected>Captured mouse · standard input</option>
+            <option value="raw">Captured mouse · unadjusted input</option>
+          </select></label>
+        <p class="muted">Compatibility mode keeps the cursor visible and uses its screen movement. Captured modes hide
+          it and use relative movement. Choose before building a test. If capture receives no movement, press Esc,
+          reset, and use compatibility mode.</p>
+        <p id="inputInfo" class="notice">Input ready · move inside the test area after starting.</p>
+        <p class="muted">Move the view with your mouse. Visible cursor: left-click each stationary green target
+          directly. Captured mouse: aim the central crosshair at the target and left-click. Moving over a target alone
+          does not score. Tracking measures time on target.</p>
+        <div class="metrics">
+          <div><small>Time remaining</small><b id="timer">—</b></div>
+          <div><small>Hits / shots · tracking</small><b id="live">—</b></div>
+          <div><small>Round</small><b id="progress">0 / 9</b></div>
+        </div>
+        <div class="stage" id="stage">
+          <div id="canvas"
+            style="position:absolute;inset:0;background-image:linear-gradient(#1d3044 1px,transparent 1px),linear-gradient(90deg,#1d3044 1px,transparent 1px);background-size:48px 48px">
+            <div id="aimTarget"
+              style="display:none;position:absolute;background:#71f0c2;border:2px solid #d6fff1;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 16px #71f0c266;pointer-events:none">
+            </div>
+            <div id="aimCrosshair"
+              style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:white;font:30px/1 monospace;text-shadow:0 0 3px black;pointer-events:none">
+              +</div>
+            <div id="centerClock"
+              style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;color:white;text-shadow:0 1px 5px black;font-weight:750">
+            </div>
+            <div id="shotFeedback"
+              style="position:absolute;left:50%;top:58%;transform:translateX(-50%);color:#ff6585;pointer-events:none">
+            </div>
+          </div>
+          <div id="hud">Waiting for your test</div>
+          <div id="overlay">
+            <div><strong>Find your natural rhythm</strong>
+              <p>Click here to start or calibrate your mouse first.</p>
+            </div>
+          </div>
+        </div>
+        <p id="status" role="status">Ready to build your test.</p><button id="start" disabled>Start / resume
+          round</button><button id="cal" class="secondary">Calibrate 10 cm</button><button id="calDone"
+          class="secondary" hidden>Finish measurement</button><button id="full" class="secondary">Fullscreen</button>
+        <p id="calInfo" class="muted">Not calibrated. Physical calibration improves matching between browser input and
+          game sensitivity.</p>
+        <details>
+          <summary>10 cm calibration instructions</summary>
+          <p>Mark 10 cm on your mousepad with a ruler. Click Calibrate, move the mouse horizontally in one direction
+            exactly 10 cm without lifting it, then press Space. Repeat. Two measurements must agree within 10%. You can
+            also press Esc and click Finish measurement.</p>
+          <p>Use your actual mouse-driver DPI. Disable system / driver acceleration; this trainer applies its own
+            optional curve after calibration. Unadjusted capture can be selected, but availability varies. Visible
+            cursor mode uses screen pixels and OS pointer settings. At high DPI, 10 cm may exceed the visible area: use
+            captured mode for calibration, or lower OS pointer speed before calibrating and keep it fixed. Never reuse
+            calibration between input modes. Calibration only approximately compensates adjusted input; it cannot remove
+            speed-dependent acceleration. Recalibrate after any DPI, browser or input-mode change.</p>
+        </details>
+      </div>
+      <div id="result" class="card" hidden></div>
+      <div class="card" style="margin-top:20px">
+        <h2>03 / Any-game conversion</h2>
+        <p class="muted">For an unlisted FPS game, measure how far your mouse travels for one full horizontal turn at a known
+          hipfire setting. This works with a linear sensitivity scale.</p><label>Known in-game sensitivity<input
+            id="customSens" type="number" min="0.000001" step="any" value="1"></label><label>Measured cm/360° at that
+          setting<input id="customCm" type="number" min="0.1" step="any" value="40"></label><label>Desired cm/360°<input
+            id="desired" type="number" min="0.1" step="any" value="40"></label><label>Game slider increment / rounding
+          step<input id="customStep" type="number" min="0.000001" step="any" value="0.001"></label><button
+          id="customCalc">Calculate custom game</button>
+        <p id="customOut" role="status" class="notice">Complete the test to use your recommended distance here
+          automatically.</p><small>Keep DPI, hipfire mode, acceleration and game options the same during measurement and
+          use. For nonlinear sliders, use the result as a starting point and remeasure. Controller, ADS and scoped
+          settings are not covered.</small>
+      </div>
+    </section>
+  </div>
+  <div class="card" style="margin-top:20px">
+    <h2>How the recommendation works</h2>
+    <p>Three physical sensitivities, three tasks each: nine rounds. Each task starts from the same seeded target
+      sequence; candidate order rotates between tasks. Flick and precision scores use successful clicks/second; tracking
+      uses time on target. Each score is normalized against the best candidate in that task, then weighted by your
+      preference. The recommendation is always a sensitivity you actually tested.</p>
+    <p>With acceleration off, matching cm/360° matches horizontal hipfire turning distance. With acceleration on, the
+      reported distance is the low-speed base distance; faster movement uses a higher gain. Different FOVs, aspect
+      ratios, recoil and ADS systems can still feel different. There is no single guaranteed best sensitivity for every
+      FPS. Small score differences need repeat sessions. eDPI is game-specific and is not averaged across games.</p>
+    <details>
+      <summary>Conversion assumptions and sources</summary>
+      <p>Optional acceleration uses gain = min(cap, 1 + rate × max(0, speed − start speed)). Speed is estimated from
+        pre-curve mouse movement in cm/s with 25 ms exponential smoothing. The same fixed curve is used for all nine
+        rounds; the test chooses a base sensitivity, not an optimized acceleration curve. Event timing and adjusted
+        browser input can affect the estimate. This is an original trainer model, not an emulation of Windows Enhance
+        Pointer Precision or a driver preset.</p>
+      <p>HTML cannot enable acceleration in another game or change your mouse driver. The game values below transfer
+        only the base sensitivity. To reproduce accelerated behavior in a game you need a separately configured
+        compatible input method and matching curve; parameter names alone do not establish a match. Otherwise turn
+        acceleration off here and retest. The any-game converter assumes constant sensitivity: disable acceleration when
+        measuring, or measure at a defined constant speed and treat the result as speed-specific.</p>
+      <p>cm/360° = 914.4 / (DPI × sensitivity × yaw). Presets use conventional default yaw values: CS2 / Apex 0.022,
+        VALORANT 0.07, and CoD MW / Warzone / Overwatch 2 0.0066 degrees per count at sensitivity 1. These are reference
+        presets, not live readings of your installed game. CoD titles and settings can differ; use physical measurement
+        for unsupported versions. CS2 assumes default m_yaw. The custom converter uses new sensitivity = known
+        sensitivity × measured cm / desired cm.</p>
+      <p>Rounded outputs show the resulting physical distance and rounding error. The app does not silently clamp game
+        values. Check that your particular game accepts the number; use the custom converter for any unsupported game or
+        changed scale. The tests are original Aimlabs-style exercises, not official embedded Aimlabs.</p>
+      <p><a href="https://www.kovaak.com/sensitivity-matcher/" target="_blank" rel="noopener">KovaaK: yaw and physical
+          matching</a> · <a href="https://kovaaks.com/kovaaks/faq" target="_blank" rel="noopener">KovaaK: cm/360°
+          input</a> · <a
+          href="https://www.callofduty.com/guides/blackops6/training/call-of-duty-guides-black-ops-6-multiplayer-training-controls"
+          target="_blank" rel="noopener">CoD: mouse sensitivity controls</a> · <a
+          href="https://aimlabs.com/articles/aimlabs/how-to-configure-and-convert-your-sensitivity-in-aimlabs/"
+          target="_blank" rel="noopener">Aimlabs: game sensitivity profiles</a>. Reference check: 2026-11-03.</p>
+    </details>
+  </div>
+  <p class="footer">Single HTML file · Works offline · Online search sends the game title to Wikidata · Exportable
+    report</p>
+</main>
+<script>'use strict';
+  const $ = id => document.getElementById(id), canvas = $('canvas'), stage = $('stage'), clamp = (x, a, b) => Math.max(a, Math.min(b, x)), rad = x => x * Math.PI / 180;
+  const profiles = [{ name: 'Counter-Strike 2', yaw: .022, dp: 3, note: 'Default m_yaw; Settings → Keyboard / Mouse → Mouse Sensitivity.' }, { name: 'VALORANT', yaw: .07, dp: 3, note: 'Settings → General → Mouse → Sensitivity: Aim. Verify 0.010–10.000.' }, { name: 'CoD MW / Warzone', yaw: .0066, dp: 2, note: 'Keyboard & Mouse → Mouse Sensitivity. Reference hipfire scale; verify your title.' }, { name: 'Apex Legends', yaw: .022, dp: 2, note: 'Mouse / Keyboard → Mouse Sensitivity; default yaw.' }, { name: 'Overwatch 2', yaw: .0066, dp: 2, note: 'Controls → Mouse → Sensitivity; check hero-specific overrides.' }];
+  let cursorActive = false, cursorPoint = null, inputEvents = 0, inputDistance = 0;
+  let plan = [], results = [], config = null, index = 0, run = null, mode = '', locked = false, raw = false, calValues = [], calCount = 0, countsPerCm = null, calibrated = false, pending = null, report = null, last = performance.now();
+  function msg(s) { $('status').textContent = s } function overlay(t, d) { $('overlay').style.display = 'flex'; $('overlay').innerHTML = '<div><strong>' + t + '</strong><p>' + d + '</p></div>' }
+  function size() { renderAim() } new ResizeObserver(size).observe(stage);
+  function physical(dpi, sens, yaw) { return 914.4 / (dpi * sens * yaw) } function converted(dpi, cm, p) { let exact = 914.4 / (dpi * cm * p.yaw), value = +exact.toFixed(p.dp); return { name: p.name, yaw: p.yaw, exact, value, display: value.toFixed(p.dp), cm: value > 0 ? physical(dpi, value, p.yaw) : null, error: value > 0 ? 100 * (physical(dpi, value, p.yaw) / cm - 1) : null, note: p.note } }
+  $('method').onchange = () => { $('direct').hidden = $('method').value !== 'direct'; $('average').hidden = $('method').value !== 'average' };
+  function read() { let acceleration = readAcceleration(); let dpi = +$('dpi').value, pad = +$('pad').value, fov = +$('fov').value, cm = +$('cm').value, sources = []; if (!(dpi >= 100 && dpi <= 32000 && pad >= 10 && pad <= 150 && fov >= 70 && fov <= 120)) throw Error('Check DPI (100–32000), mouse space (10–150 cm) and FOV (70–120°).'); if ($('method').value === 'average') { [['cs', .022], ['val', .07], ['cod', .0066]].forEach(([id, yaw]) => { if ($(id).value.trim() !== '') { let value = +$(id).value; if (!(value > 0 && Number.isFinite(value)) || (id === 'val' && (value < .01 || value > 10))) throw Error('Enter valid positive game sensitivity values.'); sources.push({ game: id, value, cm: physical(dpi, value, yaw) }) } }); if (!sources.length) throw Error('Enter at least one actual game setting, or use direct cm/360°.'); cm = sources.reduce((s, v) => s + v.cm, 0) / sources.length } if (!(cm >= 5 && cm <= 150 && Number.isFinite(cm))) throw Error('The starting distance must be between 5 and 150 cm/360°.'); return { selectedGame: gameChoice, inputMode: $('inputMode').value, acceleration, dpi, pad, fov, baseCm: cm, sources, style: $('style').value, priority: $('priority').value, duration: +$('duration').value } }
+  const fields = ['dpi', 'method', 'cm', 'cs', 'val', 'cod', 'pad', 'fov', 'style', 'priority', 'duration', 'setup', 'gameQuery', 'onlineGame', 'accelMode', 'accelThreshold', 'accelRate', 'accelCap', 'inputMode']; function freeze(v) { fields.forEach(id => $(id).disabled = v) }
+  $('setup').onclick = () => { try { config = read() } catch (e) { msg(e.message); return } let spread = config.style === 'arm' ? .22 : config.style === 'wrist' ? .16 : .2; let vals = [config.baseCm / (1 + spread), config.baseCm, config.baseCm / (1 - spread)].map(v => +v.toFixed(3)); plan = [];['flick', 'micro', 'track'].forEach((task, t) => [0, 1, 2].forEach((_, j) => plan.push({ task, cm: vals[(j + t) % 3] }))); index = 0; results = []; run = null; report = null; freeze(true); $('result').hidden = true; $('start').disabled = false; $('progress').textContent = '0 / 9'; $('hud').textContent = 'Test built · click the area to spawn a target'; msg('Baseline ' + config.baseCm.toFixed(2) + ' cm/360°. Candidates: ' + vals.map(v => v.toFixed(2)).join(' / ') + '. Calibrate before starting.'); overlay('Nine rounds. Three sensitivities.', 'Each round begins with a 3-second preparation countdown.'); };
+  function rng(seed) { return () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296 } }
+  const names = { flick: 'Flick · click to hit', micro: 'Precision · small targets', track: 'Tracking · stay on target' };
+  function newTarget() { let w = stage.clientWidth || 800, h = stage.clientHeight || 430, f = w / (2 * Math.tan(rad(config.fov / 2))), a = run.task === 'micro' ? 8 : Math.min(29, config.fov * .3), v = Math.min(a * .4, Math.atan(h / (2 * f)) * 180 / Math.PI * .65), x, y; for (let i = 0; i < 100; i++) { x = clamp(run.yaw + (run.random() - .5) * a * 2, -65, 65); y = clamp(run.pitch + (run.random() - .5) * v * 2, -35, 35); if (Math.hypot(x - run.yaw, y - run.pitch) > 2.5) break } run.target = { x, y, r: run.task === 'micro' ? .8 : 2 }; renderAim() }
+  function renderAim() { let clock = $('centerClock'); clock.textContent = run && mode === 'test' ? (run.prep > 0 ? Math.ceil(run.prep) : Math.max(0, config.duration - run.elapsed).toFixed(1) + ' s') : ''; clock.style.fontSize = run && run.prep > 0 ? '54px' : '14px'; clock.style.marginTop = run && run.prep > 0 ? '0' : '26px'; canvas.style.backgroundPosition = run ? (run.gridX || 0) + 'px ' + (run.gridY || 0) + 'px' : '0px 0px'; let t = $('aimTarget'); if (!run || !run.target) { t.style.display = 'none'; return } let w = stage.clientWidth || 800, h = stage.clientHeight || 430, f = w / (2 * Math.tan(rad((config?.fov || 103) / 2))), dx = rad(run.target.x - run.yaw), dy = rad(run.target.y - run.pitch), r = Math.max(6, Math.tan(rad(run.target.r)) * f), x = w / 2 + Math.tan(dx) * f, y = h / 2 + Math.tan(dy) * f; t.style.display = 'block'; t.style.left = x + 'px'; t.style.top = y + 'px'; t.style.width = (r * 2) + 'px'; t.style.height = (r * 2) + 'px'; $('hud').textContent = (index + 1) + '/9 · ' + names[run.task] + ' · ' + run.cm.toFixed(2) + ' cm/360°' }
+  function shoot(e) { if (e.button !== 0 || mode !== 'test' || !run || run.prep > 0 || run.elapsed >= config.duration || (!locked && !cursorActive)) return; run.shots++; if (run.task === 'track') return; let w = stage.clientWidth || 800, f = w / (2 * Math.tan(rad(config.fov / 2))), radius = Math.atan(Math.max(6, Math.tan(rad(run.target.r)) * f) / f) * 180 / Math.PI; let hit = Math.hypot(run.yaw - run.target.x, run.pitch - run.target.y) <= radius; if (cursorActive && Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) { let rect = stage.getBoundingClientRect(), tx = parseFloat($('aimTarget').style.left), ty = parseFloat($('aimTarget').style.top), rr = parseFloat($('aimTarget').style.width) / 2; hit = Math.hypot(e.clientX - rect.left - tx, e.clientY - rect.top - ty) <= rr } if (hit) { run.hits++; $('shotFeedback').textContent = 'HIT'; newTarget() } else { $('shotFeedback').textContent = 'MISS' } $('live').textContent = run.hits + ' / ' + run.shots; setTimeout(() => { $('shotFeedback').textContent = '' }, 250) }
+  stage.addEventListener('mousedown', shoot);
+  function initRun() { resetSpeed(); run = { ...plan[index], yaw: 0, pitch: 0, elapsed: 0, prep: 3, inputEvents: 0, hits: 0, shots: 0, on: 0, path: 0, random: rng(plan[index].task === 'micro' ? 71 : 23), target: null }; newTarget() }
+  function beginInput(action) { mode = action; pending = null; last = performance.now(); resetSpeed(); cursorPoint = null; inputEvents = 0; inputDistance = 0; if (action === 'cal') { $('calDone').hidden = false; overlay('Move horizontally exactly 10 cm', 'Press Space when finished. Stay inside the test area.'); msg('Recording mouse movement before acceleration…') } else { if (!run) initRun(); $('overlay').style.display = 'none'; msg(names[run.task] + ' · ' + run.cm.toFixed(2) + ' cm/360° · ' + (cursorActive ? 'visible cursor input' : raw ? 'unadjusted input requested' : 'standard captured input')); $('inputInfo').textContent = (cursorActive ? 'Left-click green targets directly.' : 'Aim the central crosshair onto a target and left-click.') + ' Countdown is running.'; renderAim() } }
+  async function lock(action) { if (pending || locked || cursorActive) return; let choice = config?.inputMode || $('inputMode').value; if (choice === 'cursor') { raw = false; cursorActive = true; beginInput(action); return } if (!stage.requestPointerLock) { msg('Mouse capture unavailable. Reset and choose Visible cursor mode.'); return } pending = action; raw = choice === 'raw'; try { if (raw) await stage.requestPointerLock({ unadjustedMovement: true }); else await stage.requestPointerLock() } catch (e) { pending = null; msg('Mouse capture failed. Reset and choose Visible cursor mode.') } }
+  $('start').onclick = () => { if (plan.length && index < plan.length) lock('test') }; stage.style.cursor = 'crosshair'; stage.title = 'Click to build, start or resume the test'; stage.onclick = e => { if (e.button !== 0 || locked || pending || cursorActive) return; if (mode === 'calPaused') { lock('cal'); return } if (mode === 'cal') return; if (!plan.length) $('setup').onclick(); if (plan.length && index < plan.length) lock('test'); else if (plan.length) msg('Test complete. View your report below or reset to start a new session.') }; $('cal').onclick = () => { if (run || results.length) { msg('Calibrate before the first round. Reset the session to recalibrate.'); return } calCount = 0; lock('cal') };
+  function finishCal() { if (!['cal', 'calPaused'].includes(mode)) return; mode = ''; cursorActive = false; cursorPoint = null; document.exitPointerLock?.(); $('calDone').hidden = true; let v = Math.abs(calCount) / 10; if (v < 5) { msg('Too little movement recorded. Measure a full 10 cm and retry.'); return } calValues.push({ value: v, raw }); if (calValues.length < 2) { msg('First measurement recorded. Click Calibrate and measure 10 cm again.'); overlay('One more measurement', 'Repeat the 10 cm movement, then press Space.'); return } let a = calValues.at(-2), b = calValues.at(-1); if (a.raw !== b.raw || Math.abs(a.value - b.value) / ((a.value + b.value) / 2) > .1) { calValues = [b]; msg('Measurements differ by over 10% or input mode changed. Please measure once more.'); return } countsPerCm = (a.value + b.value) / 2; calibrated = true; $('calInfo').textContent = 'Calibrated: ' + countsPerCm.toFixed(2) + ' browser counts/cm. ' + (raw ? 'Unadjusted input requested.' : 'Adjusted input: matching remains approximate.'); msg('Calibration accepted. Ready to test.'); overlay('Calibration complete', 'Build your test if needed, then click Start.'); }
+  $('calDone').onclick = finishCal; document.addEventListener('keydown', e => { if (e.code === 'Escape' && cursorActive) { e.preventDefault(); pause(); return } if (e.code === 'Space' && ['cal', 'calPaused'].includes(mode)) { e.preventDefault(); finishCal() } });
+  document.addEventListener('pointerlockchange', () => { locked = document.pointerLockElement === stage; last = performance.now(); if (locked) { cursorActive = false; let action = pending || 'test'; if (calibrated && calValues.at(-1)?.raw !== raw) { calibrated = false; countsPerCm = null; $('calInfo').textContent = 'Input mode changed. Reset and recalibrate.' } beginInput(action) } else if (!cursorActive) { pending = null; if (mode === 'test') { mode = 'paused'; overlay('Paused', 'Click the test area to resume. If movement failed, reset and select Visible cursor mode.') } if (mode === 'cal') { mode = 'calPaused'; overlay('Measurement paused', 'Click Finish measurement if you completed 10 cm.') } } });
+  document.addEventListener('pointerlockerror', () => { pending = null; msg('Mouse capture failed. Reset and select Visible cursor mode.') });
+  function segmentDistance(ax, ay, bx, by, px, py) { let dx = bx - ax, dy = by - ay, t = clamp(((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy || 1), 0, 1); return Math.hypot(ax + t * dx - px, ay + t * dy - py) }
+  function handleMotion(e) { if (!locked && !cursorActive) return; if (e.pointerType && e.pointerType !== 'mouse') return; let dx = 0, dy = 0; if (cursorActive) { if (!stage.contains(e.target)) return; if (!Number.isFinite(e.clientX) || !Number.isFinite(e.clientY)) return; if (cursorPoint) { dx = e.clientX - cursorPoint.x; dy = e.clientY - cursorPoint.y } cursorPoint = { x: e.clientX, y: e.clientY } } else { dx = Number.isFinite(e.movementX) ? e.movementX : 0; dy = Number.isFinite(e.movementY) ? e.movementY : 0 } if (!dx && !dy) return; inputEvents++; inputDistance += Math.hypot(dx, dy); $('inputInfo').textContent = 'Mouse connected · ' + inputEvents + ' movement packets · ' + Math.round(inputDistance) + ' input units · ' + (cursorActive ? 'visible cursor' : 'captured mouse'); if (mode === 'cal') { calCount += dx; return } if (mode !== 'test' || !run) return; run.inputEvents++; if (run.prep > 0 || run.elapsed >= config.duration) return; let motion = { movementX: dx, movementY: dy }, x = run.yaw, y = run.pitch, gain = 360 / (run.cm * (calibrated ? countsPerCm : config.dpi / 2.54)) * motionGain(motion); let focal = (stage.clientWidth || 800) / (2 * Math.tan(rad(config.fov / 2))); run.gridX = ((run.gridX || 0) - focal * rad(dx * gain)) % 48; run.gridY = ((run.gridY || 0) - focal * rad(dy * gain)) % 48; if (cursorActive && run.task !== 'track') { renderAim(); return } run.yaw = clamp(x + dx * gain, -75, 75); run.pitch = clamp(y + dy * gain, -45, 45); run.path += Math.hypot(run.yaw - x, run.pitch - y); renderAim() }
+  // Use one event stream only: Pointer Events on modern browsers, Mouse Events otherwise.
+  const movementEvent = typeof PointerEvent !== 'undefined' ? 'pointermove' : 'mousemove'; window.addEventListener(movementEvent, handleMotion, { capture: true });
+  stage.addEventListener('mouseleave', () => { cursorPoint = null; if (cursorActive && mode === 'test') pause() });
+  function endRound() { cursorActive = false; cursorPoint = null; results.push({ task: run.task, cm: run.cm, hits: run.hits, on: run.on, duration: config.duration, score: run.task === 'track' ? 100 * run.on / config.duration : run.hits / config.duration, path: run.path, shots: run.shots, accuracy: run.shots ? run.hits / run.shots : 0 }); index++; run = null; mode = ''; document.exitPointerLock?.(); $('progress').textContent = index + ' / 9'; $('timer').textContent = '0.0 s'; if (index === 9) { $('start').disabled = true; showResult(); overlay('Test complete', 'Your recommendation and game settings are below.'); msg('All nine rounds recorded. Validate the settings in your games and repeat the test.') } else { overlay('Round complete · ' + index + ' / 9', 'Next: ' + names[plan[index].task] + '. Rest, then click Start.'); msg('Round saved. Take a short rest before continuing.') } }
+  function frame(now) { let dt = Math.max(0, (now - last) / 1000); last = now; let w = canvas.clientWidth || 800, h = canvas.clientHeight || 430, f = w / (2 * Math.tan(rad(config?.fov || 103))); if (run && (locked || cursorActive) && mode === 'test') { if (run.prep > 0) { let used = Math.min(dt, run.prep); run.prep -= used; dt -= used; $('timer').textContent = 'Ready ' + Math.ceil(run.prep) } if (run.prep <= 0 && dt > 0) { dt = Math.min(dt, config.duration - run.elapsed); let steps = Math.max(1, Math.ceil(dt / .01)); for (let i = 0; i < steps; i++) { run.elapsed += dt / steps; if (run.task === 'track') { run.target = { x: 22 * Math.sin(run.elapsed * .8), y: 9 * Math.sin(run.elapsed * 1.31), r: 1.7 }; if (Math.hypot(run.yaw - run.target.x, run.pitch - run.target.y) <= run.target.r) run.on += dt / steps } } run.elapsed = Math.min(run.elapsed, config.duration); $('timer').textContent = Math.max(0, config.duration - run.elapsed).toFixed(1) + ' s'; $('live').textContent = run.task === 'track' ? (100 * run.on / (run.elapsed || 1)).toFixed(0) + '%' : run.hits + ' / ' + run.shots; } } if (run && run.elapsed >= config.duration - 1e-8) endRound(); renderAim() }
+  function safeTick() { try { frame(performance.now()) } catch (e) { console.error(e); msg('Display error: ' + e.message + '. Reset the session or reopen this file.') } } setInterval(safeTick, 16); safeTick();
+  function pause() { if (cursorActive) { cursorActive = false; cursorPoint = null; if (mode === 'test') { mode = 'paused'; overlay('Paused', 'Click inside the test area to resume.') } else if (mode === 'cal') { mode = 'calPaused'; overlay('Calibration paused', 'Click Finish measurement or click the area to resume.') } } if (locked) document.exitPointerLock?.() } document.addEventListener('visibilitychange', () => { if (document.hidden) pause() }); window.addEventListener('blur', pause); $('full').onclick = async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else await stage.requestFullscreen() } catch (e) { msg('Fullscreen unavailable; you can still test in the current window.') } };
+  function showResult() { let weights = config.priority === 'balanced' ? { flick: 1 / 3, micro: 1 / 3, track: 1 / 3 } : { flick: .25, micro: .25, track: .25 }; if (config.priority !== 'balanced') weights[config.priority] = .5; let values = [...new Set(results.map(r => r.cm))].sort((a, b) => a - b), max = {};['flick', 'micro', 'track'].forEach(t => max[t] = Math.max(...results.filter(r => r.task === t).map(r => r.score))); let ranking = values.map(cm => ({ cm, total: results.filter(r => r.cm === cm).reduce((s, r) => s + (max[r.task] ? r.score / max[r.task] : 0) * weights[r.task] * 100, 0) })).sort((a, b) => b.total - a.total || Math.abs(a.cm - config.baseCm) - Math.abs(b.cm - config.baseCm)); let win = ranking[0], empty = results.every(r => r.score === 0), gap = win.total - ranking[1].total, conversions = profiles.filter(p => !config.selectedGame || p.name === config.selectedGame.name).map(p => converted(config.dpi, win.cm, p)); report = { accelerationModel: 'linear-v1: gain=min(cap,1+rate*max(0,speed-threshold)); speed EMA 25ms', created: new Date().toISOString(), config, calibrated, countsPerCm, inputMode: config.inputMode, rawInputRequested: raw, weights, results, ranking, recommendedCm: empty ? null : win.cm, conversions: empty ? [] : conversions }; let rows = values.map(cm => { let get = t => results.find(r => r.cm === cm && r.task === t); return '<tr><td>' + cm.toFixed(2) + '</td><td>' + get('flick').hits + '</td><td>' + get('micro').hits + '</td><td>' + get('track').score.toFixed(1) + '%</td><td>' + ranking.find(r => r.cm === cm).total.toFixed(1) + '</td></tr>' }).join(''); $('result').hidden = false; $('result').innerHTML = '<h2>Your personal FPS baseline</h2>' + ((config.inputMode === 'cursor') ? '<p class="notice">Visible-cursor flick and precision rounds measure desktop pointing speed. Only tracking applies the candidate gain in this mode. For a calibrated comparison across all tasks, select captured input. Screen-pixel input depends on OS pointer speed and browser scaling. Calibrate in this mode for physical matching; results without calibration are exploratory.</p>' : '') + (empty ? '<p>No effective hits recorded. Reset and retest; no recommendation has been generated.</p>' : '<div class="value">' + win.cm.toFixed(2) + '</div><p>cm/360° · Keep <b>' + config.dpi + ' DPI</b> · ' + (win.cm / 2).toFixed(1) + ' cm for a 180° turn.</p><p>' + (!calibrated ? 'Not calibrated: browser-to-game matching has lower confidence. ' : 'Two physical calibration measurements accepted. ') + (gap < 5 ? 'Top two candidates are within 5 points: treat them as a near tie and retest.' : 'Best candidate leads by ' + gap.toFixed(1) + ' points; repeat to check consistency.') + '</p>' + (win.cm / 2 > config.pad ? '<p class="notice">A 180° turn needs more space than you entered. Consider lifting the mouse or retesting a faster baseline.</p>' : '') + accelerationSummary(win.cm) + '<h2>Enter these base hipfire settings</h2><div style="overflow:auto"><table><thead><tr><th>Game</th><th>Setting</th><th>Base cm/360°</th><th>Rounding error</th></tr></thead><tbody>' + conversions.map(c => '<tr><td>' + c.name + '</td><td><b>' + c.display + '</b></td><td>' + (c.cm?.toFixed(2) || 'Not representable') + '</td><td>' + (c.error === null ? '—' : c.error.toFixed(2) + '%') + '</td></tr>').join('') + '</tbody></table></div><p class="muted">' + conversions.map(c => c.name + ': ' + c.note).join('<br>') + '</p><p>The same physical turn distance is a cross-game baseline, not a promise of identical visual feel. Leave ADS / scoped multipliers as they are and verify each game with a ruler.</p><button id="copy">Copy all game settings</button>') + '<button id="export" class="secondary">Export JSON report</button><h2 style="margin-top:24px">Measured performance</h2><table><thead><tr><th>cm/360°</th><th>Flick hits</th><th>Precision hits</th><th>Tracking</th><th>Score / 100</th></tr></thead><tbody>' + rows + '</tbody></table>'; if (config.selectedGame && !empty && !conversions.length) { const note = document.createElement('p'); note.className = 'notice'; note.textContent = config.selectedGame.name + ' uses a custom conversion. Enter its measured turn distance and known setting in Any-game conversion below. Your tested distance has been filled in.'; $('result').prepend(note); $('copy').hidden = true } if (!empty) { $('desired').value = win.cm; $('copy').onclick = async () => { let text = 'AXIS FPS baseline: ' + win.cm.toFixed(3) + ' cm/360 at ' + config.dpi + ' DPI\nAcceleration (trainer only): ' + JSON.stringify(config.acceleration) + '\n' + conversions.map(c => c.name + ': ' + c.display).join('\n'); try { await navigator.clipboard.writeText(text); msg('All game settings copied.') } catch (e) { msg('Clipboard blocked. Select and copy the values from the table.') } } } $('export').onclick = () => { let u = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' })), a = document.createElement('a'); a.href = u; a.download = 'axis_fps_sensitivity_report.json'; a.click(); setTimeout(() => URL.revokeObjectURL(u), 2000) } }
+  $('customCalc').onclick = () => { let s = +$('customSens').value, m = +$('customCm').value, d = +$('desired').value, step = +$('customStep').value; if (![s, m, d, step].every(v => Number.isFinite(v) && v > 0)) { $('customOut').textContent = 'Enter positive finite values in all four fields.'; return } let exact = s * m / d, value = Math.round(exact / step) * step, dp = Math.min(8, Math.max(0, Math.ceil(-Math.log10(step)) + 2)); $('customOut').textContent = value > 0 ? 'Set sensitivity to ' + Number(value.toFixed(dp)).toString() + ' · exact ' + exact.toPrecision(8) + ' · resulting ' + (s * m / value).toFixed(2) + ' cm/360° · rounding error ' + (100 * (s * m / value / d - 1)).toFixed(2) + '%. Check the game accepts this value.' : 'The chosen rounding step is too large. Use a smaller step.' };
+  $('reset').onclick = () => { cursorActive = false; cursorPoint = null; resetSpeed(); $('inputInfo').textContent = 'Input reset. Select a mode, then click the test area.'; mode = ''; pending = null; document.exitPointerLock?.(); plan = []; results = []; run = null; config = null; report = null; index = 0; calValues = []; countsPerCm = null; calibrated = false; freeze(false); $('start').disabled = true; $('result').hidden = true; $('calDone').hidden = true; $('timer').textContent = '—'; $('live').textContent = '—'; $('progress').textContent = '0 / 9'; $('calInfo').textContent = 'Calibration cleared. Recalibrate at your chosen DPI.'; overlay('Ready for a fresh test', 'Choose your baseline and build a new test.'); msg('Session reset.') };
+  $('inputMode').onchange = () => { calibrated = false; calValues = []; countsPerCm = null; cursorPoint = null; $('calInfo').textContent = 'Input mode changed. Recalibrate in this mode.' };
+  $('dpi').onchange = () => { calibrated = false; calValues = []; countsPerCm = null; $('calInfo').textContent = 'DPI changed. Please recalibrate.' };
+
+  let speedState = { last: null, distance: 0, speed: 0, gain: 1 };
+  function readAcceleration() { let a = { mode: $('accelMode').value, threshold: +$('accelThreshold').value, rate: +$('accelRate').value, cap: +$('accelCap').value }; if (!['off', 'linear'].includes(a.mode) || ![a.threshold, a.rate, a.cap].every(Number.isFinite) || a.threshold < 0 || a.threshold > 300 || a.rate < 0 || a.rate > 1 || a.cap < 1 || a.cap > 5) throw Error('Acceleration: start speed 0–300 cm/s, rate 0–1, cap 1–5.'); return a }
+  function accelerationGain(speed, a) { return a.mode === 'off' ? 1 : Math.min(a.cap, 1 + a.rate * Math.max(0, speed - a.threshold)) }
+  function resetSpeed() { speedState = { last: null, distance: 0, speed: 0, gain: 1 }; $('accelReadout').textContent = '0.0 cm/s · ×1.00 gain' }
+  function motionGain(e) { let now = performance.now(), cpc = calibrated ? countsPerCm : config.dpi / 2.54, a = config.acceleration; if (speedState.last === null) { speedState.last = now; return 1 } speedState.distance += Math.hypot(e.movementX, e.movementY) / cpc; let dt = (now - speedState.last) / 1000; if (dt >= .004) { let measured = speedState.distance / dt, alpha = 1 - Math.exp(-dt / .025); speedState.speed += alpha * (measured - speedState.speed); speedState.last = now; speedState.distance = 0 } speedState.gain = accelerationGain(speedState.speed, a); $('accelReadout').textContent = speedState.speed.toFixed(1) + ' cm/s · ×' + speedState.gain.toFixed(2) + ' gain · ' + (run.cm / speedState.gain).toFixed(2) + ' effective cm/360°'; return speedState.gain }
+  function drawCurve() { let a; try { a = readAcceleration() } catch { return } let maxSpeed = Math.max(100, a.threshold + 30), maxGain = Math.max(2, a.cap), points = []; for (let i = 0; i <= 200; i++)points.push((30 + i / 200 * 220) + ',' + (105 - (accelerationGain(i / 200 * maxSpeed, a) - 1) / (maxGain - 1) * 85)); $('accelCurve').innerHTML = '<path d="M30 10V105H252" fill="none" stroke="#51667d"/><polyline points="' + points.join(' ') + '" fill="none" stroke="#71f0c2" stroke-width="2"/><g fill="#91a3ba" font-size="10"><text x="0" y="15">×' + maxGain.toFixed(1) + '</text><text x="6" y="106">×1</text><text x="30" y="123">0</text><text x="200" y="123">' + maxSpeed.toFixed(0) + ' cm/s</text></g>' }
+  function accelerationSummary(cm) { let a = config.acceleration; if (a.mode === 'off') return '<p class="notice">Acceleration off: constant base sensitivity.</p>'; return '<div class="notice"><b>Acceleration enabled in this test</b><p>Linear curve · starts at ' + a.threshold + ' cm/s · gain rate ' + a.rate + ' per cm/s · cap ×' + a.cap + '. Base distance ' + cm.toFixed(2) + ' cm/360°; at the cap, ' + (cm / a.cap).toFixed(2) + ' cm/360°.</p><p>These game sensitivity numbers set the base only. This HTML does not enable game or driver acceleration. Reproduce the curve separately, or turn acceleration off and retest for constant-sensitivity game settings.</p></div>' }
+  ['accelMode', 'accelThreshold', 'accelRate', 'accelCap'].forEach(id => $(id).addEventListener('input', drawCurve)); drawCurve();
+
+  let gameChoice = null, searchGeneration = 0;
+  const simplifyGame = t => t.toLowerCase().replace(/[^a-z0-9]/g, '');
+  function presetFor(title) {
+    const key = simplifyGame(title);
+    if (!key) return null;
+    const aliases = [['cs2', 'counterstrike2'], ['valorant'], ['callofdutywarzone', 'warzone', 'callofdutymodernwarfare2019'], ['apexlegends'], ['overwatch2']];
+    return profiles.find((p, i) => simplifyGame(p.name) === key || aliases[i].includes(key)) || null;
+  }
+  function gameButton(title, preset) {
+    const button = document.createElement('button'); button.className = 'secondary'; button.textContent = title + (preset ? ' · preset' : ' · measured');
+    button.onclick = () => { if ($('gameQuery').disabled) return; searchGeneration++; gameChoice = { name: preset ? preset.name : title }; $('chosenGame').textContent = 'Selected game: ' + gameChoice.name; $('gameMatches').replaceChildren(); $('gameStatus').textContent = preset ? 'Your report will show this game’s sensitivity.' : 'Use the measured conversion below for this game.' };
+    $('gameMatches').appendChild(button);
+  }
+  function localGames() {
+    searchGeneration++; const query = simplifyGame($('gameQuery').value); $('gameMatches').replaceChildren();
+    const aliases = ['cs2', 'valorant', 'callofdutywarzone', 'apex', 'overwatch']; profiles.forEach((p, i) => { if (!query || simplifyGame(p.name).includes(query) || aliases[i].includes(query)) gameButton(p.name, p) });
+  }
+  $('gameQuery').oninput = () => { localGames(); $('gameStatus').textContent = 'Showing matching offline presets. Search online for other titles.' };
+  $('onlineGame').onclick = async () => {
+    const query = $('gameQuery').value.trim(); if (!query) { $('gameStatus').textContent = 'Enter a game title first.'; return }
+    localGames(); const generation = searchGeneration; $('gameStatus').textContent = 'Searching Wikidata…';
+    try {
+      const params = new URLSearchParams({ action: 'wbsearchentities', search: query, language: 'en', format: 'json', limit: '30', origin: '*' });
+      const response = await fetch('https://www.wikidata.org/w/api.php?' + params, { signal: AbortSignal.timeout(8000) });
+      if (!response.ok) throw Error(); const data = await response.json(); if (generation !== searchGeneration || $('gameQuery').disabled) return;
+      const games = (data.search || []).filter(item => /video game|shooter game|computer game/i.test(item.description || ''));
+      games.forEach(item => gameButton(item.label, presetFor(item.label)));
+      $('gameStatus').textContent = games.length ? 'Choose a matching title.' : 'No matching online game found. Try its full title.';
+    } catch { if (generation === searchGeneration) $('gameStatus').textContent = 'Online search is unavailable. Offline presets and measured conversion still work.' }
+  };
+  $('gameQuery').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('onlineGame').click() } };
+  localGames();
+</script>
+
+</html>
